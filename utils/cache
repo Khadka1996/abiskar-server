@@ -1,0 +1,75 @@
+const NodeCache = require("node-cache");
+const logger = require("./logger.util");
+
+// Create a new cache instance with standard TTL of 1 hour
+const cache = new NodeCache({
+  stdTTL: 3600, // 1 hour in seconds
+  checkperiod: 600, // 10 minutes
+  useClones: false // Better performance for our use case
+});
+
+// Cache middleware for GET requests
+const cacheMiddleware = (duration) => {
+  return (req, res, next) => {
+    // Only cache GET requests
+    if (req.method !== 'GET') {
+      return next();
+    }
+
+    const key = req.originalUrl;
+    const cachedResponse = cache.get(key);
+
+    if (cachedResponse) {
+      logger.debug(`Cache hit for ${key}`);
+      return res.json(cachedResponse);
+    } else {
+      logger.debug(`Cache miss for ${key}`);
+      // Override res.json to cache the response before sending
+      const originalJson = res.json;
+      res.json = (body) => {
+        cache.set(key, body, duration || 3600); // Default 1 hour
+        originalJson.call(res, body);
+      };
+      next();
+    }
+  };
+};
+
+// Clear cache for specific keys or patterns
+const clearCache = (keys) => {
+  if (typeof keys === 'string') {
+    keys = [keys];
+  }
+
+  keys.forEach(key => {
+    // Handle pattern matching (basic implementation)
+    if (key.includes('*')) {
+      const allKeys = cache.keys();
+      const pattern = new RegExp(key.replace(/\*/g, '.*'));
+      const matchingKeys = allKeys.filter(k => pattern.test(k));
+      
+      matchingKeys.forEach(match => {
+        cache.del(match);
+        logger.debug(`Cleared cache for pattern: ${match}`);
+      });
+    } else {
+      cache.del(key);
+      logger.debug(`Cleared cache for key: ${key}`);
+    }
+  });
+};
+
+// Cache stats endpoint (useful for debugging)
+const getCacheStats = () => {
+  return {
+    keys: cache.keys(),
+    stats: cache.getStats()
+  };
+};
+
+module.exports = {
+  cache,
+  cacheMiddleware,
+  clearCache,
+  getCacheStats
+};
