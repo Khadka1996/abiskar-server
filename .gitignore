@@ -1,0 +1,60 @@
+# ========================
+# Node.js
+# ========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+
+
+
+# ========================
+# Build outputs
+# ========================
+build/
+dist/
+.next/
+out/
+
+# ========================
+# Logs
+# ========================
+logs/
+*.log
+
+
+
+# ========================
+# OS / Editor files
+# ========================
+.DS_Store
+Thumbs.db
+.snap
+.vscode/
+.idea/
+
+# ========================
+# PM2
+# ========================
+pm2.log
+pids/
+*.pid
+
+# ========================
+# Cache
+# ========================
+.cache/
+.eslintcache
+
+# ========================
+# Coverage
+# ========================
+coverage/
+
+# ========================
+# Temp files
+# ========================
+tmp/
+temp/
